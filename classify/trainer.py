@@ -19,12 +19,13 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 def get_class_weights():
     """ Account for class imbalance """
     train_weights = torch.Tensor([288.,242.,222.])
-    train_weights = (train_weights/train_weights.sum()).to(DEVICE)
+    train_weights = 1 - train_weights/train_weights.sum()
 
-    valid_weights = torch.Tensor([216.,170.,88.])
-    valid_weights = (valid_weights/valid_weights.sum()).to(DEVICE)
+    valid_weights = torch.Tensor([215.,171.,88.])
+    valid_weights = 1 - valid_weights/valid_weights.sum()
 
-    class_weights = {'train':train_weights, 'valid':valid_weights}
+    class_weights = {
+            'train':train_weights.to(DEVICE), 'valid':valid_weights.to(DEVICE)}
     return class_weights
 
 def train_model(model, optimizer, scheduler, dataloaders, num_epochs=25):
@@ -151,10 +152,10 @@ if __name__ == "__main__":
     model = model.to(DEVICE)
 
     # Observe that all parameters are being optimized
-    optimizer = optim.SGD(model.parameters(), lr=0.005, momentum=0.9)
+    optimizer = optim.SGD(model.parameters(), lr=0.005, momentum=0.90)
 
     # Decay LR by a factor of 0.1 every 7 epochs
-    lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=14, gamma=0.5)
+    lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.5)
 
     model = train_model(
         model, 
@@ -163,5 +164,5 @@ if __name__ == "__main__":
         dataloaders,
         num_epochs=30)
     
-    model_num = 4
+    model_num = 2
     torch.save(model.state_dict(), f'classify/saved_models/model_{model_num}.pt')

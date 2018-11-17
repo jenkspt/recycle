@@ -21,7 +21,7 @@ def rescale_to(arr, low=0, high=255):
     return arr
 
 def display_topk(model, dataset,
-        rows=3, cols=3, largest=True, color=False):
+        rows=3, cols=3, largest=True, color=False, figsize=(12,6)):
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -53,7 +53,7 @@ def display_topk(model, dataset,
         probs, vis = model_vis(images)
         _, preds = torch.max(probs, 1)
         
-        fig, axs = plt.subplots(rows, cols)
+        fig, axs = plt.subplots(rows, cols, figsize=figsize)
         
         zipped = zip(preds, labels, label_probs, images, vis, axs.ravel())
         for pred, label, label_prob, image, feat, ax in zipped:
@@ -78,7 +78,7 @@ def display_topk(model, dataset,
             ax.axis('off')
             _pred = validset.classes[pred]
             _label = validset.classes[label]
-            ax.set_title(f'pred:{_pred}, actual:{_label}, prob:{label_prob:.2f}')
+            ax.set_title(f'Pred: {_pred}, Actual: {_label}, \nProb: {label_prob:.2f}')
 
         return axs
 
@@ -92,7 +92,7 @@ if __name__ == "__main__":
     num_ftrs = model.fc.in_features
     model.fc = nn.Linear(num_ftrs, 3)
 
-    model.load_state_dict(torch.load('saved_models/model_4.pt'))
+    model.load_state_dict(torch.load('classify/saved_models/model_2.pt'))
     model = model.to(device)
 
     valid_transform = transforms.Compose([
@@ -102,10 +102,10 @@ if __name__ == "__main__":
 
 
     trainset = datasets.ImageFolder(
-        '../data/recycle_classify/train', valid_transform)
+        'data/recycle_classify/train', valid_transform)
 
     validset = datasets.ImageFolder(
-        '../data/recycle_classify/valid', valid_transform)
+        'data/recycle_classify/valid', valid_transform)
 
-    display_topk(model, validset, largest=False)
+    display_topk(model, validset, rows=2, cols=4, largest=False)
     plt.show()

@@ -1,6 +1,7 @@
 import numpy as np
 import time
 import copy
+from PIL import Image
 
 import torch
 import torch.nn as nn
@@ -8,6 +9,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.optim import lr_scheduler
 from torch.utils.data import DataLoader
+from transforms import RandomErasing
 
 from torchvision import datasets, models, transforms
 import matplotlib.pyplot as plt
@@ -112,13 +114,18 @@ def train_model(model, optimizer, scheduler, dataloaders, num_epochs=25):
 def get_dataloaders(batch_size=64):
 
     train_transform = transforms.Compose([
+        transforms.RandomRotation((0, 360), resample=Image.BILINEAR),
+        transforms.CenterCrop(447),
         transforms.Resize(224),
         transforms.RandomHorizontalFlip(),
         transforms.RandomVerticalFlip(),
         transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+        RandomErasing(mean=[0, 0, 0])
+        ])
 
     valid_transform = transforms.Compose([
+        transforms.CenterCrop(447),
         transforms.Resize(224),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
@@ -137,32 +144,35 @@ def get_dataloaders(batch_size=64):
     dataloaders = {'train': trainloader, 'valid':validloader}
     return dataloaders
 
-def get_model():
-    model = models.resnet50(pretrained=True)
+def get_model(pretrained=False):
+    model = models.resnet50(pretrained=pretrained)
     num_ftrs = model.fc.in_features
-    model.fc = nn.Linear(num_ftrs, 3)
+    model.fc = nn.Sequential(
+        nn.Dropout(),
+        nn.Linear(num_ftrs, 3)
+        )
     return model
 
 if __name__ == "__main__":
 
     dataloaders = get_dataloaders()
 
-    model = get_model()
+    model = get_model(True)
     #model.load_state_dict(torch.load('classify/model.pt'))
     model = model.to(DEVICE)
 
     # Observe that all parameters are being optimized
     optimizer = optim.SGD(model.parameters(), lr=0.005, momentum=0.90)
 
-    # Decay LR by a factor of 0.1 every 7 epochs
-    lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.5)
+    # Decay LR by a factor of `gamma` every `step_size` epochs
+    lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=14, gamma=0.5)
 
     model = train_model(
         model, 
         optimizer, 
         lr_scheduler,
         dataloaders,
-        num_epochs=30)
+        num_epochs=35)
     
-    model_num = 2
+    model_num = 6
     torch.save(model.state_dict(), f'classify/saved_models/model_{model_num}.pt')

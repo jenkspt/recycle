@@ -72,13 +72,6 @@ class LayerVisualizer(nn.Module):
             x, prod = block(x)
             vis += prod
 
-        """
-        vis = []   # Activations
-        for block in self.layer.children():
-            x = block(x)
-            vis.append(x.mean(1,keepdim=True))   # Average channels
-            print(f'LayerVis: {tuple(vis[-1].shape)}')
-        """
         return x, vis
 
 class BottleneckVisualizer(nn.Module):
@@ -90,7 +83,7 @@ class BottleneckVisualizer(nn.Module):
         self.k1x1 = torch.ones((1,1,1,1))
 
     def forward(self, x):
-        vis = []
+        #vis = []
 
         residual = x
 
@@ -98,14 +91,14 @@ class BottleneckVisualizer(nn.Module):
         out = self.block.bn1(out)
         out = self.block.relu(out)
 
-        vis += [out.mean(1,keepdim=True)]
+        #vis += [out.mean(1,keepdim=True)]
 
 
         out = self.block.conv2(out)
         out = self.block.bn2(out)
         out = self.block.relu(out)
 
-        vis += [out.mean(1,keepdim=True)]
+        #vis += [out.mean(1,keepdim=True)]
 
 
         out = self.block.conv3(out)
@@ -116,9 +109,9 @@ class BottleneckVisualizer(nn.Module):
 
         out += residual
         out = self.block.relu(out)
-        vis += [out.mean(1,keepdim=True)]
+        #vis += [out.mean(1,keepdim=True)]
 
-        return out, [vis[-1]] #vis#[out.mean(1,keepdim=True)]
+        return out, [out.mean(1,keepdim=True)]
 
 if __name__ == "__main__":
     model = resnet50(pretrained=True)

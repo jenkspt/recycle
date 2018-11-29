@@ -13,9 +13,9 @@ def download_data(save_dir):
     assert save_dir.is_dir()
     # Annotations url
     # Validation
-    #url = "https://storage.googleapis.com/labelbox-exports/cjnxo84x0j9dh0797j4fnrf76/cjny1mlmn834y08762g947hm1/export-coco-2018-11-02T21%3A42%3A49.384946.json"
+    url = "https://storage.googleapis.com/labelbox-exports/cjnxo84x0j9dh0797j4fnrf76/cjny1mlmn834y08762g947hm1/export-coco-2018-11-16T23%3A07%3A41.142812.json"
     # Training
-    url = "https://storage.googleapis.com/labelbox-exports/cjnxo84x0j9dh0797j4fnrf76/cjny1mlmn834y08762g947hm1/export-coco-2018-11-02T21%3A43%3A32.227623.json"
+    #url = "https://storage.googleapis.com/labelbox-exports/cjnxo84x0j9dh0797j4fnrf76/cjny1mlmn834y08762g947hm1/export-coco-2018-11-02T21%3A43%3A32.227623.json"
 
     # Save annotations
     r = requests.get(url, allow_redirects=True)
@@ -26,7 +26,7 @@ def download_data(save_dir):
         parsed_url = parse.urlparse(parse.unquote(image_data['file_name']))
         file_name = Path(parsed_url.path).name
         image_data['file_name'] = file_name
-    json.dump(data, (save_dir / 'train.json').open('w'))
+    json.dump(data, (save_dir / 'valid.json').open('w'))
 
 def fix_image_ids(data):
     """ 
@@ -98,11 +98,24 @@ def display(image, annotations, ax=None):
         ax.add_patch(rect_border)
         ax.add_patch(rect_fill)
     ax.axis('off')
-    #ax.set_title('Glass (red)
+    _glass = patches.Patch(color='#169487', label='Glass')
+    _metal = patches.Patch(color='#7CB14A', label='Metal')
+    _plastic = patches.Patch(color='#B19CD9', label='Plastic')
+    ax.legend(handles=[_glass, _metal, _plastic])
     return ax
 
 if __name__ == "__main__":
     pass
     #save_dir = 'data/recycle_coco'
     #download_data(save_dir)
-    make_classify_dataset('data/recycle_coco', 'data/recycle_classify',447)
+    #make_classify_dataset('data/recycle_coco', 'data/recycle_classify',447)
+    make_classify_dataset('data/recycle_coco', 'data/recycle_classify',632)
+    """
+    ds = CocoDetection(
+        root = 'data/recycle_coco/train',
+        annFile = 'data/recycle_coco/train.json',
+        transform=None)
+
+    display(*ds[0])
+    plt.show()
+    """

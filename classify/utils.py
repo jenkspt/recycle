@@ -5,10 +5,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
-
+from transforms import RandomErasing
 from torchvision import datasets, models, transforms
 from torchvision.transforms import ToPILImage
 
+import trainer
 from visualbackprop import ResnetVisualizer
 
 import matplotlib.pyplot as plt
@@ -49,7 +50,7 @@ def display_topk(model, dataset,
         images = torch.stack([dataset[i][0] for i in args],0)
         labels = [dataset[i][1] for i in args]
         # Run images through the feature visualizer
-        model_vis = ResnetVisualizer(model.to("cpu"))
+        model_vis = ResnetVisualizer(model.to("cpu")).eval()
         probs, vis = model_vis(images)
         _, preds = torch.max(probs, 1)
         
@@ -81,25 +82,21 @@ def display_topk(model, dataset,
             ax.set_title(f'Pred: {_pred}, Actual: {_label}, \nProb: {label_prob:.2f}')
 
         return axs
-
-
         
 
 if __name__ == "__main__":
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    model = models.resnet50(pretrained=False)
-    num_ftrs = model.fc.in_features
-    model.fc = nn.Linear(num_ftrs, 3)
+    model = trainer.get_model(False)
 
-    model.load_state_dict(torch.load('classify/saved_models/model_2.pt'))
+    model.load_state_dict(torch.load('classify/saved_models/model_6.pt'))
     model = model.to(device)
 
     valid_transform = transforms.Compose([
+        transforms.CenterCrop(447),
         transforms.Resize(224),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
-
 
     trainset = datasets.ImageFolder(
         'data/recycle_classify/train', valid_transform)
@@ -107,5 +104,5 @@ if __name__ == "__main__":
     validset = datasets.ImageFolder(
         'data/recycle_classify/valid', valid_transform)
 
-    display_topk(model, validset, rows=2, cols=4, largest=False)
+    display_topk(model, trainset, rows=2, cols=4, largest=False)
     plt.show()

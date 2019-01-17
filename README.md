@@ -66,14 +66,14 @@ for identifying objects that occure more often in training.*
 I also used the average over the per class accuracies as the validation metric to maximize.
 
 After a few experiments the classifier achieved 85% validation accuracy.
-The experiment parameters can be seen in the [insert link here] file.
+The experiment parameters can be seen in the [results.ods](classify/results.ods) file.
 
 Lets check out some of the fail cases.
 
 **Worst Validation Images**
 ![classify valid worst](media/classify_valid_worst.png "Worst Valid Examples")
 *The images are displayed in grayscale with a feature visualization overlayed in red.
-The feature visualization code is here, and it is from an Nvidia paper called
+The feature visualization code is [here](https://github.com/jenkspt/nvidia-visual-back-propagation), and it is from an Nvidia paper called
 Visual Back Propagation.
 the 'Prob' value is the probability assigned to the correct class
 (which is how these images are ranked).*
